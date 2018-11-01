@@ -1,0 +1,1 @@
+Autoriger application uses (as of now) 3D meshes that have to be orientated in 3D space in a specific. For reference see meshes in \Resources\Meshes\
