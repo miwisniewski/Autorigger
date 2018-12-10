@@ -27,6 +27,7 @@ CCamera::~CCamera()
 
 }
 
+// Initializes camera
 void CCamera::initialize()
 {
 	pos = glm::vec3(-150, 200, 200);

@@ -68,11 +68,14 @@ CWidget::~CWidget()
 	doneCurrent();
 }
 
+//	Mesh import button handler
 void CWidget::mesh_import_button_handle()
 {
+	//open file dialog and let user import only obj files, returns file name and path to BA then makes it readable by importer
 	QByteArray BA = QFileDialog::getOpenFileName(this, tr("Import obj model"), "", tr("Wavefront obj file(*.obj)")).toLocal8Bit();
 	const char* Imesh = BA.constData();
 
+	//if user just closes file dialog it still returns some garbage
 	if (strlen(Imesh) > 3)
 	{
 		playAni = false;
@@ -82,20 +85,25 @@ void CWidget::mesh_import_button_handle()
 	}
 }
 
+//	Texture import button handler
 void CWidget::tex_import_button_handle()
 {
+	//no idea why the conversions are any different than in mesh import handler, probably caused bugs
 	QByteArray BA = QFileDialog::getOpenFileName(this, tr("Import png texture"), "", tr("Portable Network Graphics (*.png)")).toUtf8().constData();
 	const char* Itex = BA.constData();
 
+	//checks for garbage
 	if (strlen(Itex) > 3)
 		initTextures(Itex, false);
 }
 
+// Mesh export button handler
 void CWidget::export_button_handle()
 {
 	QByteArray BA = QFileDialog::getSaveFileName(this, tr("Export COLLADA model"), "", tr("COLLADA  file (*.dae)")).toUtf8();
 	const char* path = BA.constData();
 
+	//checks for garbage
 	if (strlen(path) > 3)
 	{
 		if (!hasBones)
@@ -121,8 +129,10 @@ void CWidget::export_button_handle()
 	}
 }
 
+//	Rig process starter button handler
 void CWidget::rig_button_handle()
 {
+	
 	if (imported)
 	{
 		CMeshRig rigged(scene);
@@ -134,6 +144,7 @@ void CWidget::rig_button_handle()
 		CPopupWindow *w = new CPopupWindow("No mesh imported", nullptr, "Rigging status", this);
 }
 
+//	Viewport scene reset button handler
 void CWidget::reset_button_handle()
 {
 	imported = false;
@@ -143,12 +154,14 @@ void CWidget::reset_button_handle()
 	initTextures("Resources/Textures/checker.png", true);
 }
 
+//	Animation stop button handler
 void CWidget::stopAni_button_handle()
 {
 	playAni = false;
 	//set pose to bind pose;
 }
 
+//	Animation start button handler
 void CWidget::playAni_button_handle()
 {
 	if (hasBones)
@@ -197,6 +210,8 @@ void CWidget::initializeGL()
 	gl->glCullFace(GL_BACK);
 	gl->glFrontFace(GL_CCW);
 	gl->glEnable(GL_DEPTH_TEST);
+
+	//timer required for mesh rotation by mouse
 	timer.start(12, this);
 }
 
@@ -238,6 +253,7 @@ void CWidget::initTextures(const char* path, bool reset)
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
+	//this function is also called in scene reset so this bool prevents unnecessary info window popup after scene reset, yes it imports the checker board again if reset - potential memory leak
 	if (!reset)
 		CPopupWindow *w = new CPopupWindow("Texture imported Successfully", nullptr, "Import status", this);
 }
@@ -248,6 +264,7 @@ void CWidget::initMeshes(const char* path, bool reset)
 	mesh = new CMeshImp(path, gl);
 	if (mesh->importMesh())
 	{
+		//same thing as in initTextures() with the reset bool
 		if(!reset)
 			CPopupWindow *w = new CPopupWindow("Mesh imported Successfully", nullptr, "Import status", this);
 		scene = mesh->getScene();
@@ -263,18 +280,23 @@ void CWidget::initCamera()
 	camera->initialize();
 }
 
+//	checks for and saves mouse click position
 void CWidget::mousePressEvent(QMouseEvent *e)
 {
 	mousePressPosition = QVector2D(e->localPos());
 }
 
+//	checks for mouse click release, gets variables required for mesh rotation
 void CWidget::mouseReleaseEvent(QMouseEvent *e)
 {
+	//position difference between click and release
 	QVector2D diff = QVector2D(e->localPos()) - mousePressPosition;
+	//calculates rotation speed based on above
 	qreal acc = diff.length() / 100.0;
 	angularSpeed += acc;
 }
 
+//	updates scene
 void CWidget::timerEvent(QTimerEvent *e)
 {
 	angularSpeed *= 0.975;

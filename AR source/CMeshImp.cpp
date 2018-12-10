@@ -53,6 +53,7 @@ void CMeshImp::normalizeSize()
 	double scale = 0;
 	float tmpMax = 0;
 
+	//go through all vertices and find the one with highest z coordinate
 	for (int i = 0; i < mesh->mNumVertices; i++)
 	{
 		aiVector3D &vertices = mesh->mVertices[i];
@@ -63,6 +64,7 @@ void CMeshImp::normalizeSize()
 	}
 	scale = 2.0 / tmpMax;
 
+	//multiply all vertices coordinates by new scale
 	for (int i = 0; i < mesh->mNumVertices; i++)
 	{
 		aiVector3D &vertices = mesh->mVertices[i];
@@ -78,6 +80,7 @@ void CMeshImp::normalizeSize()
 // Create non const aiScene from AI import
 void CMeshImp::createScene(const aiScene* volatileScene)
 {
+	//initialize all necessary elements in assimp scene
 	aiMesh *mesh = volatileScene->mMeshes[0];
 	scene = new aiScene;
 	aiMesh *newMesh = new aiMesh;
@@ -89,16 +92,17 @@ void CMeshImp::createScene(const aiScene* volatileScene)
 	newMesh->mFaces = new aiFace[mesh->mNumFaces];
 	newMesh->mNumFaces = mesh->mNumFaces;
 	scene->mMeshes = new aiMesh*[1];
-	scene->mNumMeshes = 1;
+	scene->mNumMeshes = 1;	//only one mesh supported as of now
 	scene->mRootNode = new aiNode;
 	scene->mRootNode->mMeshes = new unsigned int[1];
 	scene->mRootNode->mMeshes[0] = 0;
 	scene->mRootNode->mNumMeshes = 1;
 	scene->mMaterials = new aiMaterial*[1];
 	scene->mMaterials[0] = new aiMaterial;
-	scene->mNumMaterials = 1;
+	scene->mNumMaterials = 1;	//only one material supported, no point in using multiple in such a program anyway
 	newMesh->mMaterialIndex = 0;
 
+	//transfer all vertice data from one scene to another
 	for (int i = 0; i < newMesh->mNumVertices; i++)
 	{
 		aiVector3D &vertices = mesh->mVertices[i];
@@ -118,6 +122,7 @@ void CMeshImp::createScene(const aiScene* volatileScene)
 	}
 
 
+	//transfer all vertex indices
 	for (uint i = 0; i < newMesh->mNumFaces; ++i)
 	{
 		const aiFace& face = mesh->mFaces[i];
